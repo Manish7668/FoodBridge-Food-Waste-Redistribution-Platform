@@ -1,0 +1,2 @@
+import type {Request,Response,NextFunction} from 'express'; import {fail} from '../utils/response.js';
+export function errorHandler(err:any,_req:Request,res:Response,_next:NextFunction){console.error(err); if(err?.name==='ZodError') return fail(res,'VALIDATION_ERROR','Invalid request',422,err.issues); if(err?.code===11000)return fail(res,'DUPLICATE','A unique value already exists',409); return fail(res,'INTERNAL_ERROR','Something went wrong',500)}

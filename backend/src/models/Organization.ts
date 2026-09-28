@@ -1,0 +1,3 @@
+import mongoose,{Schema} from 'mongoose';
+const loc={type:{type:String,enum:['Point'],default:'Point'},coordinates:{type:[Number],default:[0,0]}};
+const s=new Schema({userId:{type:Schema.Types.ObjectId,ref:'User',required:true,index:true},organizationName:{type:String,required:true},organizationType:{type:String,required:true},description:String,registrationNumber:String,verificationStatus:{type:String,enum:['PENDING','VERIFIED','REJECTED','SUSPENDED'],default:'PENDING',index:true},location:loc,address:String,contact:{email:String,phone:String},foodPreferences:[String],capacity:{type:Number,default:0},pickupRadius:{type:Number,default:10},documents:[String]},{timestamps:true}); s.index({location:'2dsphere'}); export const Organization=mongoose.model('Organization',s);

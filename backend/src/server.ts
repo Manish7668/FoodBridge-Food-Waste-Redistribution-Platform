@@ -1,0 +1,6 @@
+import express from 'express'; import cors from 'cors'; import helmet from 'helmet'; import rateLimit from 'express-rate-limit'; import morgan from 'morgan'; import {Server} from 'socket.io'; import http from 'http'; import {connectDB} from './config/db.js'; import {env} from './config/env.js'; import {authRouter} from './routes/auth.js'; import {donationRouter} from './routes/donations.js'; import {workflowRouter} from './routes/workflow.js'; import {adminRouter} from './routes/admin.js'; import {errorHandler} from './middleware/error.js';
+export const app=express(); const server=http.createServer(app); export const io=new Server(server,{cors:{origin:env.CLIENT_URL}});
+app.use(helmet());app.use(cors({origin:env.CLIENT_URL}));app.use(express.json({limit:'2mb'}));app.use(morgan('combined'));app.use(rateLimit({windowMs:15*60*1000,max:300,standardHeaders:true}));
+app.get('/health',(_req,res)=>res.json({ok:true,service:'foodbridge-api'}));app.use('/api/auth',authRouter);app.use('/api/donations',donationRouter);app.use('/api/workflow',workflowRouter);app.use('/api/admin',adminRouter);
+io.on('connection',socket=>{socket.on('join:user',(id:string)=>socket.join(`user:${id}`));});app.use(errorHandler);
+if(process.env.NODE_ENV!=='test')connectDB().then(()=>server.listen(env.PORT,()=>console.log(`API on ${env.PORT}`))).catch(e=>{console.error(e);process.exit(1)});

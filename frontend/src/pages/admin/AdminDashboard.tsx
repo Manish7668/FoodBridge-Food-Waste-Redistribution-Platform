@@ -1,0 +1,16 @@
+import { useEffect, useMemo, useState } from 'react';
+import { Activity, AlertTriangle, Building2, CheckCircle2, Package, ShieldCheck, UsersRound } from 'lucide-react';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import { api, getApiError, request } from '../../lib/api';
+import type { User } from '../../types';
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { LoadingState } from '../../components/common/LoadingState';
+
+export function AdminDashboard({ user }: { user: User }) {
+  const [data, setData] = useState<Record<string, number> | null>(null); const [error, setError] = useState('');
+  useEffect(() => { request<Record<string, number>>(api.get('/admin/dashboard')).then(setData).catch((e) => setError(getApiError(e, 'Unable to load admin analytics.'))); }, []);
+  const chart = useMemo(() => data ? [{ name: 'Users', value: data.users || 0 }, { name: 'Donors', value: data.donors || 0 }, { name: 'Verified NGOs', value: data.verifiedNGOs || 0 }, { name: 'Active', value: data.activeDonations || 0 }, { name: 'Completed', value: data.completedDonations || 0 }] : [], [data]);
+  return <DashboardLayout user={user}><div className="page-heading"><div><span className="eyebrow">PLATFORM CONTROL CENTER</span><h1>Admin dashboard</h1><p>Monitor the FoodBridge ecosystem using live database counts.</p></div><div className="heading-pill"><ShieldCheck size={17} /> Admin access</div></div>{error && <div className="inline-error">{error}</div>}{!data ? <LoadingState label="Loading platform analytics..." /> : <><div className="stats-grid"><AdminStat icon={<UsersRound/>} label="Total users" value={data.users} tone="green"/><AdminStat icon={<Building2/>} label="Verified NGOs" value={data.verifiedNGOs} tone="blue"/><AdminStat icon={<Package/>} label="Active donations" value={data.activeDonations} tone="orange"/><AdminStat icon={<CheckCircle2/>} label="Completed" value={data.completedDonations} tone="green"/><AdminStat icon={<AlertTriangle/>} label="Expired" value={data.expiredDonations} tone="red"/><AdminStat icon={<Activity/>} label="Open complaints" value={data.openComplaints} tone="purple"/></div><section className="panel admin-chart"><div className="panel-heading compact"><div><span className="panel-kicker">PLATFORM SNAPSHOT</span><h2>Current activity</h2></div></div><div className="admin-chart-height"><ResponsiveContainer width="100%" height="100%"><BarChart data={chart} margin={{ top: 10, right: 10, left: -15, bottom: 5 }}><CartesianGrid stroke="#edf2ee" vertical={false}/><XAxis dataKey="name" axisLine={false} tickLine={false}/><YAxis allowDecimals={false} axisLine={false} tickLine={false}/><Tooltip/><Bar dataKey="value" fill="#16a34a" radius={[8,8,0,0]}/></BarChart></ResponsiveContainer></div></section></>}</DashboardLayout>;
+}
+
+function AdminStat({ icon, label, value, tone }: { icon: React.ReactNode; label: string; value?: number; tone: string }) { return <div className={`stat-card stat-${tone}`}><div className="stat-top"><div className="stat-icon">{icon}</div></div><div className="stat-label">{label}</div><div className="stat-value">{value ?? 0}</div><div className="stat-helper">Live database count</div></div>; }

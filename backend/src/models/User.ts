@@ -1,0 +1,2 @@
+import mongoose,{Schema} from 'mongoose';
+const s=new Schema({name:{type:String,required:true,trim:true},email:{type:String,required:true,unique:true,lowercase:true,index:true},passwordHash:{type:String,required:true},role:{type:String,enum:['DONOR','NGO','VOLUNTEER','ADMIN'],required:true},phone:String,profileImage:String,isVerified:{type:Boolean,default:false},isActive:{type:Boolean,default:true},refreshTokenHash:String},{timestamps:true}); export const User=mongoose.model('User',s);

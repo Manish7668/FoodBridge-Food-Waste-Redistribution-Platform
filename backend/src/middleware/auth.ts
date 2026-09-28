@@ -1,0 +1,4 @@
+import type {Request,Response,NextFunction} from 'express'; import {User} from '../models/User.js'; import {verifyAccess,Role} from '../utils/auth.js'; import {fail} from '../utils/response.js';
+declare global {namespace Express {interface Request {user?:any}}}
+export async function auth(req:Request,res:Response,next:NextFunction){try{const h=req.headers.authorization;if(!h?.startsWith('Bearer '))return fail(res,'UNAUTHORIZED','Authentication required',401);const p=verifyAccess(h.slice(7));const u=await User.findById(p.sub).lean();if(!u||!u.isActive)return fail(res,'UNAUTHORIZED','Account unavailable',401);req.user=u;next()}catch{return fail(res,'UNAUTHORIZED','Invalid or expired token',401)}}
+export const allow=(...roles:Role[])=>(req:Request,res:Response,next:NextFunction)=>roles.includes(req.user?.role)?next():fail(res,'FORBIDDEN','Insufficient permissions',403);
